@@ -26,7 +26,7 @@
 }
 
 @import "tailwindcss";
-
+@plugin "daisyui";
 @theme{
     --font-plight: Poppins-Light, sans-serif;
     --font-pregular: Poppins-Regular, sans-serif;

@@ -14,7 +14,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
 
   // Saved resumes state
   const [savedResumes, setSavedResumes] = useState([]);
-
+console.log(savedResumes)
   // ------------------------
   // Firebase: Fetch Resumes for the Logged-in User
   // ------------------------

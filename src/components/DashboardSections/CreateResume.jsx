@@ -3,7 +3,7 @@ import * as yup from "yup";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 // import { auth } from "../../firebase"; // adjust the path to your firebase config file
-import { Plus, ArrowUp, ArrowDown, Sparkles } from "lucide-react"
+import { Plus, ArrowUp, ArrowDown, Sparkles } from "lucide-react";
 
 import { generateTemplate2PDF } from "./ResumeTemplates/Template2";
 import { generateTemplate3PDF } from "./ResumeTemplates/Template3";
@@ -22,6 +22,8 @@ import temp7 from "../../assets/images/temp7.webp";
 import ModernInput from "../ModernInput";
 import useAuth from "@/hooks/useAuth";
 import PDFPreview from "./PDFPreview";
+import CheckoutForm from "@/pages/Payment/CheckoutForm";
+import Payment from "@/pages/Payment/Payment";
 
 // Yup schema for Personal Information (Step 1)
 const personalInfoSchema = yup.object().shape({
@@ -75,9 +77,7 @@ const ResumeBuilder = () => {
   const [saveConfirmation, setSaveConfirmation] = useState("");
   const [savingPDF, setSavingPDF] = useState(false);
 
-
-
-  const [pdfBlob,setPdfBlob]=useState(null)
+  const [pdfBlob, setPdfBlob] = useState(null);
 
   useEffect(() => {
     if (aiResume) {
@@ -108,7 +108,13 @@ const ResumeBuilder = () => {
     photo: "",
     // Step 2: Work Experience (multiple entries)
     workExperience: [
-      { jobTitle: "", company: "", startDate: "", endDate: "", responsibilities: "" },
+      {
+        jobTitle: "",
+        company: "",
+        startDate: "",
+        endDate: "",
+        responsibilities: "",
+      },
     ],
     // Step 3: Education (multiple entries)
     education: [{ school: "", degree: "", graduationYear: "" }],
@@ -202,14 +208,20 @@ const ResumeBuilder = () => {
   const moveWorkExpUp = (index) => {
     if (index === 0) return;
     const newWorkExp = [...resume.workExperience];
-    [newWorkExp[index - 1], newWorkExp[index]] = [newWorkExp[index], newWorkExp[index - 1]];
+    [newWorkExp[index - 1], newWorkExp[index]] = [
+      newWorkExp[index],
+      newWorkExp[index - 1],
+    ];
     setResume({ ...resume, workExperience: newWorkExp });
   };
 
   const moveWorkExpDown = (index) => {
     if (index === resume.workExperience.length - 1) return;
     const newWorkExp = [...resume.workExperience];
-    [newWorkExp[index + 1], newWorkExp[index]] = [newWorkExp[index], newWorkExp[index + 1]];
+    [newWorkExp[index + 1], newWorkExp[index]] = [
+      newWorkExp[index],
+      newWorkExp[index + 1],
+    ];
     setResume({ ...resume, workExperience: newWorkExp });
   };
 
@@ -226,8 +238,6 @@ const ResumeBuilder = () => {
     [newEdu[index + 1], newEdu[index]] = [newEdu[index], newEdu[index + 1]];
     setResume({ ...resume, education: newEdu });
   };
-
-
 
   const generateSuggestions = async () => {
     setLoading(true);
@@ -298,34 +308,42 @@ const ResumeBuilder = () => {
 
     // Create a base resume with the user's existing data
     const baseResume = { ...resume };
-    
+
     // If resume fields are empty, add placeholder data for better AI generation
     if (!baseResume.name) baseResume.name = "John Smith";
-    
+
     // If work experience is empty or has no content, add a sample position
-    if (baseResume.workExperience.length === 0 || 
-        (baseResume.workExperience.length === 1 && 
-         !baseResume.workExperience[0].jobTitle && 
-         !baseResume.workExperience[0].company)) {
-      baseResume.workExperience = [{
-        jobTitle: "Entry-Level Position",
-        company: "Company Name",
-        startDate: "2023",
-        endDate: "Present",
-        responsibilities: "Seeking first professional role"
-      }];
+    if (
+      baseResume.workExperience.length === 0 ||
+      (baseResume.workExperience.length === 1 &&
+        !baseResume.workExperience[0].jobTitle &&
+        !baseResume.workExperience[0].company)
+    ) {
+      baseResume.workExperience = [
+        {
+          jobTitle: "Entry-Level Position",
+          company: "Company Name",
+          startDate: "2023",
+          endDate: "Present",
+          responsibilities: "Seeking first professional role",
+        },
+      ];
     }
-    
+
     // If education is empty or has no content, add a sample education
-    if (baseResume.education.length === 0 ||
-        (baseResume.education.length === 1 && 
-         !baseResume.education[0].school && 
-         !baseResume.education[0].degree)) {
-      baseResume.education = [{
-        school: "University Name",
-        degree: "Bachelor's Degree",
-        graduationYear: "2023"
-      }];
+    if (
+      baseResume.education.length === 0 ||
+      (baseResume.education.length === 1 &&
+        !baseResume.education[0].school &&
+        !baseResume.education[0].degree)
+    ) {
+      baseResume.education = [
+        {
+          school: "University Name",
+          degree: "Bachelor's Degree",
+          graduationYear: "2023",
+        },
+      ];
     }
 
     // Optimized prompt instructing Gemini to rework the entire resume.
@@ -333,15 +351,21 @@ const ResumeBuilder = () => {
       You are an expert resume optimizer.
       Given the following resume details:
       - Name: ${baseResume.name}
-      - Work Experience: ${JSON.stringify(baseResume.workExperience.map(exp => ({
-        ...exp,
-        // Combine start and end dates for the prompt
-        duration: `${exp.startDate} - ${exp.endDate}`,
-      })))}
+      - Work Experience: ${JSON.stringify(
+        baseResume.workExperience.map((exp) => ({
+          ...exp,
+          // Combine start and end dates for the prompt
+          duration: `${exp.startDate} - ${exp.endDate}`,
+        }))
+      )}
       - Education: ${JSON.stringify(baseResume.education)}
       - Additional Content: ${JSON.stringify(baseResume.additionalContent)}
       - Current Summary: ${baseResume.summary || "No summary provided"}
-      - Current Skills: ${JSON.stringify(baseResume.skills.length > 0 ? baseResume.skills : ["No skills provided"])}
+      - Current Skills: ${JSON.stringify(
+        baseResume.skills.length > 0
+          ? baseResume.skills
+          : ["No skills provided"]
+      )}
       
       Please optimize and create a complete resume.
       Return a valid JSON object with exactly four keys:
@@ -429,25 +453,28 @@ const ResumeBuilder = () => {
   // Update: merges AI data into main resume, closes modal, goes to next step
   const handleUpdateAiResume = () => {
     // When updating from AI data, we need to split the duration back into start and end dates
-    const processedWorkExperience = editableAiResume.workExperience.map(exp => {
-      // If the AI returns a combined duration field, split it
-      if (exp.duration && !exp.startDate && !exp.endDate) {
-        const [startDate, endDate] = exp.duration.split(' - ');
-        return {
-          ...exp,
-          startDate: startDate || '',
-          endDate: endDate || '',
-        };
+    const processedWorkExperience = editableAiResume.workExperience.map(
+      (exp) => {
+        // If the AI returns a combined duration field, split it
+        if (exp.duration && !exp.startDate && !exp.endDate) {
+          const [startDate, endDate] = exp.duration.split(" - ");
+          return {
+            ...exp,
+            startDate: startDate || "",
+            endDate: endDate || "",
+          };
+        }
+        return exp;
       }
-      return exp;
-    });
+    );
 
     // Process skills - ensure it's always an array when saving to main resume
     let processedSkills = editableAiResume.skills;
-    if (typeof processedSkills === 'string') {
+    if (typeof processedSkills === "string") {
       // Split by comma and trim whitespace, then filter out any empty items
-      processedSkills = processedSkills.split(',')
-        .map(skill => skill.trim())
+      processedSkills = processedSkills
+        .split(",")
+        .map((skill) => skill.trim())
         .filter(Boolean);
     } else if (!Array.isArray(processedSkills)) {
       // Default to empty array if it's neither string nor array
@@ -499,12 +526,11 @@ const ResumeBuilder = () => {
   // ------------------------
   // PDF Preview and Export
   // ------------------------
- const generatePDFPreview = () => {
-  const doc = createPDFDocument();
-  const pdfBlob = doc.output("blob");   // gives a real Blob
-  setPdfBlob(pdfBlob);                  // keep Blob in state
-};
-
+  const generatePDFPreview = () => {
+    const doc = createPDFDocument();
+    const pdfBlob = doc.output("blob"); // gives a real Blob
+    setPdfBlob(pdfBlob); // keep Blob in state
+  };
 
   // Download the PDF locally
   const downloadPDF = () => {
@@ -515,7 +541,7 @@ const ResumeBuilder = () => {
   // ------------------------
   // Save PDF to Firebase (with confirmation and "already saved" check)
   // ------------------------
-  const {user} = useAuth()
+  const { user } = useAuth();
   const savePDFToFirebase = async () => {
     // If already saved, do not save again.
     if (pdfSaved) {
@@ -525,29 +551,6 @@ const ResumeBuilder = () => {
     }
 
     setSavingPDF(true); // Set loading state to true when starting the save operation
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     const doc = createPDFDocument();
     const pdfBlob = doc.output("blob");
@@ -578,7 +581,6 @@ const ResumeBuilder = () => {
     }
   };
 
-
   useEffect(() => {
     if (step === 8) {
       generatePDFPreview();
@@ -593,7 +595,9 @@ const ResumeBuilder = () => {
       case 1:
         return (
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-5 pb-2 border-b">Step 1: Personal Information</h3>
+            <h3 className="text-xl font-medium text-primary mb-5 pb-2 border-b">
+              Step 1: Personal Information
+            </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6">
               <ModernInput
                 label="Full Name"
@@ -606,22 +610,25 @@ const ResumeBuilder = () => {
                 label="Phone Number"
                 placeholder="+1 123-456-7890"
                 value={resume.phone}
-                onChange={(e) => setResume({ ...resume, phone: e.target.value })}
+                onChange={(e) =>
+                  setResume({ ...resume, phone: e.target.value })
+                }
                 error={fieldErrors.phone}
               />
               <div className="md:col-span-2">
                 <ModernInput
-                label="Email"
-                placeholder="email@example.com"
-                value={resume.email}
-                onChange={(e) => setResume({ ...resume, email: e.target.value })}
-                error={fieldErrors.email}
-              />
+                  label="Email"
+                  placeholder="email@example.com"
+                  value={resume.email}
+                  onChange={(e) =>
+                    setResume({ ...resume, email: e.target.value })
+                  }
+                  error={fieldErrors.email}
+                />
               </div>
 
+              {/* commented by hasib to remove linked in */}
 
-{/* commented by hasib to remove linked in */}
-              
               {/* <ModernInput
                 label="LinkedIn URL"
                 placeholder="https://www.linkedin.com/in/username"
@@ -634,15 +641,15 @@ const ResumeBuilder = () => {
                   label="Address"
                   placeholder="123 Main St, City, State, ZIP"
                   value={resume.address}
-                  onChange={(e) => setResume({ ...resume, address: e.target.value })}
+                  onChange={(e) =>
+                    setResume({ ...resume, address: e.target.value })
+                  }
                   error={fieldErrors.address}
                 />
               </div>
             </div>
-            
 
-{/* commented by hasib to remove the image upload option */}
-
+            {/* commented by hasib to remove the image upload option */}
 
             {/* <div className="mt-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">Profile Picture (optional)</label>
@@ -690,19 +697,27 @@ const ResumeBuilder = () => {
       case 2:
         return (
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 2: Work Experience</h3>
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 2: Work Experience
+            </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Enter your work history, keeping your most recent position at the top.
+              Enter your work history, keeping your most recent position at the
+              top.
             </p>
-            
+
             {resume.workExperience.map((exp, index) => (
-              <div key={index} className="mb-6 p-4 bg-white rounded-md shadow-sm">
+              <div
+                key={index}
+                className="mb-6 p-4 bg-white rounded-md shadow-sm"
+              >
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-700">Position {index + 1}</h4>
+                  <h4 className="font-medium text-gray-700">
+                    Position {index + 1}
+                  </h4>
                   <div className="flex items-center gap-2">
                     {index > 0 && (
-                      <button 
-                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors" 
+                      <button
+                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
                         onClick={() => moveWorkExpUp(index)}
                         aria-label="Move up"
                       >
@@ -710,8 +725,8 @@ const ResumeBuilder = () => {
                       </button>
                     )}
                     {index < resume.workExperience.length - 1 && (
-                      <button 
-                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors" 
+                      <button
+                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
                         onClick={() => moveWorkExpDown(index)}
                         aria-label="Move down"
                       >
@@ -722,22 +737,35 @@ const ResumeBuilder = () => {
                       <button
                         className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 transition-colors text-red-500"
                         onClick={() => {
-                          const newWorkExp = resume.workExperience.filter((_, i) => i !== index);
+                          const newWorkExp = resume.workExperience.filter(
+                            (_, i) => i !== index
+                          );
                           setResume({ ...resume, workExperience: newWorkExp });
                         }}
                         aria-label="Remove"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     )}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Job Title
+                    </label>
                     <input
                       type="text"
                       placeholder="Software Engineer"
@@ -750,9 +778,11 @@ const ResumeBuilder = () => {
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Company
+                    </label>
                     <input
                       type="text"
                       placeholder="Company Name"
@@ -765,9 +795,11 @@ const ResumeBuilder = () => {
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Start Date
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g., Jan 2020"
@@ -780,9 +812,11 @@ const ResumeBuilder = () => {
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      End Date
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g., Present or Dec 2023"
@@ -795,24 +829,33 @@ const ResumeBuilder = () => {
                       }}
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Responsibilities</label>
-                    {exp.responsibilities && Array.isArray(exp.responsibilities) ? (
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Responsibilities
+                    </label>
+                    {exp.responsibilities &&
+                    Array.isArray(exp.responsibilities) ? (
                       <div className="space-y-2">
                         {exp.responsibilities.map((resp, respIndex) => (
-                          <div key={respIndex} className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500 min-w-[20px]">{respIndex + 1}.</span>
+                          <div
+                            key={respIndex}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="text-xs text-gray-500 min-w-[20px]">
+                              {respIndex + 1}.
+                            </span>
                             <input
                               type="text"
                               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
                               value={resp}
                               onChange={(e) => {
                                 const newExp = [...resume.workExperience];
-                                newExp[index].responsibilities[respIndex] = e.target.value;
+                                newExp[index].responsibilities[respIndex] =
+                                  e.target.value;
                                 setResume({
                                   ...resume,
-                                  workExperience: newExp
+                                  workExperience: newExp,
                                 });
                               }}
                             />
@@ -829,7 +872,7 @@ const ResumeBuilder = () => {
                           newExp[index].responsibilities = e.target.value;
                           setResume({
                             ...resume,
-                            workExperience: newExp
+                            workExperience: newExp,
                           });
                         }}
                       />
@@ -838,7 +881,7 @@ const ResumeBuilder = () => {
                 </div>
               </div>
             ))}
-            
+
             <button
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
               onClick={() =>
@@ -846,7 +889,13 @@ const ResumeBuilder = () => {
                   ...resume,
                   workExperience: [
                     ...resume.workExperience,
-                    { jobTitle: "", company: "", startDate: "", endDate: "", responsibilities: "" },
+                    {
+                      jobTitle: "",
+                      company: "",
+                      startDate: "",
+                      endDate: "",
+                      responsibilities: "",
+                    },
                   ],
                 })
               }
@@ -859,19 +908,27 @@ const ResumeBuilder = () => {
       case 3:
         return (
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 3: Education</h3>
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 3: Education
+            </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Enter your educational background, starting with your most recent degree.
+              Enter your educational background, starting with your most recent
+              degree.
             </p>
-            
+
             {resume.education.map((edu, index) => (
-              <div key={index} className="mb-6 p-4 bg-white rounded-md shadow-sm">
+              <div
+                key={index}
+                className="mb-6 p-4 bg-white rounded-md shadow-sm"
+              >
                 <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-700">Education {index + 1}</h4>
+                  <h4 className="font-medium text-gray-700">
+                    Education {index + 1}
+                  </h4>
                   <div className="flex items-center gap-2">
                     {index > 0 && (
-                      <button 
-                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors" 
+                      <button
+                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
                         onClick={() => moveEduUp(index)}
                         aria-label="Move up"
                       >
@@ -879,8 +936,8 @@ const ResumeBuilder = () => {
                       </button>
                     )}
                     {index < resume.education.length - 1 && (
-                      <button 
-                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors" 
+                      <button
+                        className="p-1.5 rounded-md bg-gray-100 hover:bg-gray-200 transition-colors"
                         onClick={() => moveEduDown(index)}
                         aria-label="Move down"
                       >
@@ -891,22 +948,35 @@ const ResumeBuilder = () => {
                       <button
                         className="p-1.5 rounded-md bg-red-50 hover:bg-red-100 transition-colors text-red-500"
                         onClick={() => {
-                          const newEdu = resume.education.filter((_, i) => i !== index);
+                          const newEdu = resume.education.filter(
+                            (_, i) => i !== index
+                          );
                           setResume({ ...resume, education: newEdu });
                         }}
                         aria-label="Remove"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     )}
                   </div>
                 </div>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">School</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      School
+                    </label>
                     <input
                       type="text"
                       placeholder="School Name"
@@ -919,9 +989,11 @@ const ResumeBuilder = () => {
                       }}
                     />
                   </div>
-                  
+
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Year of Graduation</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Year of Graduation
+                    </label>
                     <input
                       type="text"
                       placeholder="e.g., 2023"
@@ -934,9 +1006,11 @@ const ResumeBuilder = () => {
                       }}
                     />
                   </div>
-                  
+
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Degree</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Degree
+                    </label>
                     <input
                       type="text"
                       placeholder="Degree"
@@ -952,7 +1026,7 @@ const ResumeBuilder = () => {
                 </div>
               </div>
             ))}
-            
+
             <button
               className="inline-flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
               onClick={() =>
@@ -972,25 +1046,35 @@ const ResumeBuilder = () => {
         );
       case 4:
         return (
-          <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 4: Skills & Summary</h3>
-            
+          <div className="max-w-3xl md:w-xl mx-auto">
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 4: Skills & Summary
+            </h3>
+
             <div className="mb-6">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Professional Summary</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Professional Summary
+              </label>
               <textarea
                 placeholder="A brief summary about yourself..."
                 className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary transition-colors min-h-[120px]"
                 value={resume.summary}
-                onChange={(e) => setResume({ ...resume, summary: e.target.value })}
+                onChange={(e) =>
+                  setResume({ ...resume, summary: e.target.value })
+                }
               />
             </div>
-            
+
             <div className="mb-6">
               <div className="flex justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">Skills (max 5)</label>
-                <span className="text-xs text-gray-500">{resume.skills.length}/5 skills added</span>
+                <label className="block text-sm font-medium text-gray-700">
+                  Skills (max 5)
+                </label>
+                <span className="text-xs text-gray-500">
+                  {resume.skills.length}/5 skills added
+                </span>
               </div>
-              
+
               <div className="flex mb-3">
                 <input
                   type="text"
@@ -1008,7 +1092,10 @@ const ResumeBuilder = () => {
                   } text-white rounded-r-md transition-colors`}
                   onClick={() => {
                     if (currentSkill.trim() && resume.skills.length < 5) {
-                      setResume({ ...resume, skills: [...resume.skills, currentSkill.trim()] });
+                      setResume({
+                        ...resume,
+                        skills: [...resume.skills, currentSkill.trim()],
+                      });
                       setCurrentSkill("");
                     }
                   }}
@@ -1017,22 +1104,36 @@ const ResumeBuilder = () => {
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
-              
+
               {resume.skills.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {resume.skills.map((skill, i) => (
-                    <div key={i} className="bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2 group">
+                    <div
+                      key={i}
+                      className="bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2 group"
+                    >
                       <span className="text-gray-800">{skill}</span>
                       <button
                         onClick={() => {
-                          const newSkills = resume.skills.filter((_, index) => index !== i);
+                          const newSkills = resume.skills.filter(
+                            (_, index) => index !== i
+                          );
                           setResume({ ...resume, skills: newSkills });
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                         aria-label="Remove skill"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -1040,7 +1141,7 @@ const ResumeBuilder = () => {
                 </div>
               )}
             </div>
-            
+
             <button
               className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-primary/80 text-white rounded-md hover:opacity-90 transition-colors mt-4"
               onClick={generateSuggestions}
@@ -1053,18 +1154,24 @@ const ResumeBuilder = () => {
       case 5:
         return (
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 5: Additional Content</h3>
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 5: Additional Content
+            </h3>
             <p className="text-sm text-gray-600 mb-6">
               Add optional information to enhance your resume.
             </p>
-            
+
             {/* Languages Section */}
             <div className="mb-6">
               <div className="flex justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">Languages</label>
-                <span className="text-xs text-gray-500">{resume.additionalContent.languages.length} languages added</span>
+                <label className="block text-sm font-medium text-gray-700">
+                  Languages
+                </label>
+                <span className="text-xs text-gray-500">
+                  {resume.additionalContent.languages.length} languages added
+                </span>
               </div>
-              
+
               <div className="flex mb-3">
                 <input
                   type="text"
@@ -1075,7 +1182,9 @@ const ResumeBuilder = () => {
                 />
                 <button
                   className={`px-4 flex items-center justify-center ${
-                    !currentLanguage.trim() ? "bg-gray-300 cursor-not-allowed" : "bg-primary hover:bg-primary/90"
+                    !currentLanguage.trim()
+                      ? "bg-gray-300 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary/90"
                   } text-white rounded-r-md transition-colors`}
                   onClick={() => {
                     if (currentLanguage.trim()) {
@@ -1083,7 +1192,10 @@ const ResumeBuilder = () => {
                         ...resume,
                         additionalContent: {
                           ...resume.additionalContent,
-                          languages: [...resume.additionalContent.languages, currentLanguage.trim()],
+                          languages: [
+                            ...resume.additionalContent.languages,
+                            currentLanguage.trim(),
+                          ],
                         },
                       });
                       setCurrentLanguage("");
@@ -1094,27 +1206,43 @@ const ResumeBuilder = () => {
                   <Plus className="w-5 h-5" />
                 </button>
               </div>
-              
+
               {resume.additionalContent.languages.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-4">
                   {resume.additionalContent.languages.map((lang, i) => (
-                    <div key={i} className="bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2">
+                    <div
+                      key={i}
+                      className="bg-gray-100 px-3 py-1.5 rounded-md flex items-center gap-2"
+                    >
                       <span className="text-gray-800">{lang}</span>
                       <button
                         onClick={() => {
-                          const newLang = resume.additionalContent.languages.filter(
-                            (_, index) => index !== i
-                          );
+                          const newLang =
+                            resume.additionalContent.languages.filter(
+                              (_, index) => index !== i
+                            );
                           setResume({
                             ...resume,
-                            additionalContent: { ...resume.additionalContent, languages: newLang },
+                            additionalContent: {
+                              ...resume.additionalContent,
+                              languages: newLang,
+                            },
                           });
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors"
                         aria-label="Remove language"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-4 w-4"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -1122,14 +1250,19 @@ const ResumeBuilder = () => {
                 </div>
               )}
             </div>
-            
+
             {/* References Section */}
             <div className="mb-6">
               <div className="flex justify-between mb-2">
-                <label className="block text-sm font-medium text-gray-700">References (Max 2)</label>
-                <span className="text-xs text-gray-500">{resume.additionalContent.references.length}/2 references added</span>
+                <label className="block text-sm font-medium text-gray-700">
+                  References (Max 2)
+                </label>
+                <span className="text-xs text-gray-500">
+                  {resume.additionalContent.references.length}/2 references
+                  added
+                </span>
               </div>
-              
+
               <div className="mb-3 grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
                   <input
@@ -1152,7 +1285,9 @@ const ResumeBuilder = () => {
                   />
                   <button
                     className={`px-4 flex items-center justify-center ${
-                      resume.additionalContent.references.length >= 2 || !currentReferenceName.trim() || !currentReferenceContact.trim()
+                      resume.additionalContent.references.length >= 2 ||
+                      !currentReferenceName.trim() ||
+                      !currentReferenceContact.trim()
                         ? "bg-gray-300 cursor-not-allowed"
                         : "bg-primary hover:bg-primary/90"
                     } text-white rounded-r-md transition-colors`}
@@ -1189,30 +1324,50 @@ const ResumeBuilder = () => {
                   </button>
                 </div>
               </div>
-              
+
               {resume.additionalContent.references.length > 0 && (
                 <div className="space-y-2">
                   {resume.additionalContent.references.map((ref, i) => (
-                    <div key={i} className="bg-gray-100 px-4 py-2 rounded-md flex justify-between items-center">
+                    <div
+                      key={i}
+                      className="bg-gray-100 px-4 py-2 rounded-md flex justify-between items-center"
+                    >
                       <div>
-                        <div className="font-medium text-gray-800">{ref.name}</div>
-                        <div className="text-sm text-gray-600">{ref.contact}</div>
+                        <div className="font-medium text-gray-800">
+                          {ref.name}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {ref.contact}
+                        </div>
                       </div>
                       <button
                         onClick={() => {
-                          const newRef = resume.additionalContent.references.filter(
-                            (_, index) => index !== i
-                          );
+                          const newRef =
+                            resume.additionalContent.references.filter(
+                              (_, index) => index !== i
+                            );
                           setResume({
                             ...resume,
-                            additionalContent: { ...resume.additionalContent, references: newRef },
+                            additionalContent: {
+                              ...resume.additionalContent,
+                              references: newRef,
+                            },
                           });
                         }}
                         className="text-gray-400 hover:text-red-500 transition-colors p-1"
                         aria-label="Remove reference"
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="h-5 w-5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                            clipRule="evenodd"
+                          />
                         </svg>
                       </button>
                     </div>
@@ -1224,19 +1379,28 @@ const ResumeBuilder = () => {
         );
       case 6:
         return (
-          <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 6: Template Selection</h3>
+          <div className="max-w-[1000px] w-[1000px] mx-auto">
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 6: Template Selection
+            </h3>
             <p className="text-sm text-gray-600 mb-6">
               Choose a template design for your resume.
             </p>
-            
+
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {["template2", "template3", "template4", "template5", "template6", "template7"].map((tpl) => (
+              {[
+                "template2",
+                "template3",
+                "template4",
+                "template5",
+                "template6",
+                "template7",
+              ].map((tpl) => (
                 <div
                   key={tpl}
                   className={`overflow-hidden rounded-md transition-all duration-200 cursor-pointer ${
-                    resume.template === tpl 
-                      ? "ring-2 ring-primary scale-[1.02]" 
+                    resume.template === tpl
+                      ? "ring-2 ring-primary scale-[1.02]"
                       : "hover:shadow-md hover:scale-[1.02]"
                   }`}
                   onClick={() => setResume({ ...resume, template: tpl })}
@@ -1247,7 +1411,13 @@ const ResumeBuilder = () => {
                       alt={tpl}
                       className="w-full h-full object-cover"
                     />
-                    <div className={`absolute inset-0 ${resume.template === tpl ? "bg-primary/10" : "hover:bg-black/5"}`}></div>
+                    <div
+                      className={`absolute inset-0 ${
+                        resume.template === tpl
+                          ? "bg-primary/10"
+                          : "hover:bg-black/5"
+                      }`}
+                    ></div>
                   </div>
                   <div className="py-2 px-3 bg-white text-center">
                     <p className="text-sm font-medium text-gray-700">
@@ -1262,16 +1432,24 @@ const ResumeBuilder = () => {
       case 7:
         return (
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 7: AI Optimization</h3>
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 7: AI Optimization
+            </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Enhance your resume with AI-powered optimization to highlight your strengths and improve your chances of getting noticed.
+              Enhance your resume with AI-powered optimization to highlight your
+              strengths and improve your chances of getting noticed.
             </p>
-            
+
             <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-lg p-6 mb-6">
               <div className="flex flex-col items-center text-center">
                 <Sparkles className="w-10 h-10 text-primary mb-3" />
-                <h4 className="text-lg font-medium text-gray-800 mb-2">AI Resume Optimization</h4>
-                <p className="text-gray-600 mb-4">Our AI will analyze your resume and suggest improvements to your summary, skills, work experience, and education details.</p>
+                <h4 className="text-lg font-medium text-gray-800 mb-2">
+                  AI Resume Optimization
+                </h4>
+                <p className="text-gray-600 mb-4">
+                  Our AI will analyze your resume and suggest improvements to
+                  your summary, skills, work experience, and education details.
+                </p>
                 <button
                   className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors font-medium"
                   onClick={optimizeResume}
@@ -1279,9 +1457,25 @@ const ResumeBuilder = () => {
                 >
                   {loading ? (
                     <>
-                      <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin h-5 w-5 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       <span>Optimizing...</span>
                     </>
@@ -1294,23 +1488,31 @@ const ResumeBuilder = () => {
                 </button>
               </div>
             </div>
-            
+
             {showOptimizeModal && aiResume && editableAiResume && (
               <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50">
                 <div className="bg-white w-full max-w-5xl p-6 rounded-lg shadow-lg relative max-h-[90vh] overflow-y-auto">
-                  <h2 className="text-xl font-bold text-primary mb-4">AI Optimized Resume Comparison</h2>
-                  
+                  <h2 className="text-xl font-bold text-primary mb-4">
+                    AI Optimized Resume Comparison
+                  </h2>
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Current Resume */}
                     <div className="border rounded-lg p-4 bg-gray-50">
-                      <h3 className="text-lg font-medium text-gray-800 mb-3">Current Resume</h3>
-                      
+                      <h3 className="text-lg font-medium text-gray-800 mb-3">
+                        Current Resume
+                      </h3>
+
                       <div className="space-y-4">
                         <div>
-                          <h4 className="font-medium text-gray-700">Summary:</h4>
-                          <p className="text-sm text-gray-600">{resume.summary || "No summary"}</p>
+                          <h4 className="font-medium text-gray-700">
+                            Summary:
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {resume.summary || "No summary"}
+                          </p>
                         </div>
-                        
+
                         <div>
                           <h4 className="font-medium text-gray-700">Skills:</h4>
                           {resume.skills && resume.skills.length > 0 ? (
@@ -1323,49 +1525,71 @@ const ResumeBuilder = () => {
                             <p className="text-sm text-gray-600">No skills</p>
                           )}
                         </div>
-                        
+
                         <div>
-                          <h4 className="font-medium text-gray-700">Work Experience:</h4>
-                          {resume.workExperience && resume.workExperience.length > 0 && resume.workExperience[0].jobTitle ? (
+                          <h4 className="font-medium text-gray-700">
+                            Work Experience:
+                          </h4>
+                          {resume.workExperience &&
+                          resume.workExperience.length > 0 &&
+                          resume.workExperience[0].jobTitle ? (
                             <div className="space-y-2">
                               {resume.workExperience.map((exp, index) => (
                                 <div key={index} className="text-sm">
-                                  <p className="font-medium">{exp.jobTitle} at {exp.company}</p>
-                                  <p className="text-gray-600">{exp.startDate} - {exp.endDate}</p>
+                                  <p className="font-medium">
+                                    {exp.jobTitle} at {exp.company}
+                                  </p>
+                                  <p className="text-gray-600">
+                                    {exp.startDate} - {exp.endDate}
+                                  </p>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-600">No work experience</p>
+                            <p className="text-sm text-gray-600">
+                              No work experience
+                            </p>
                           )}
                         </div>
-                        
+
                         <div>
-                          <h4 className="font-medium text-gray-700">Education:</h4>
-                          {resume.education && resume.education.length > 0 && resume.education[0].school ? (
+                          <h4 className="font-medium text-gray-700">
+                            Education:
+                          </h4>
+                          {resume.education &&
+                          resume.education.length > 0 &&
+                          resume.education[0].school ? (
                             <div className="space-y-2">
                               {resume.education.map((edu, index) => (
                                 <div key={index} className="text-sm">
                                   <p className="font-medium">{edu.degree}</p>
-                                  <p className="text-gray-600">{edu.school}, {edu.graduationYear}</p>
+                                  <p className="text-gray-600">
+                                    {edu.school}, {edu.graduationYear}
+                                  </p>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-600">No education</p>
+                            <p className="text-sm text-gray-600">
+                              No education
+                            </p>
                           )}
                         </div>
                       </div>
                     </div>
-                    
+
                     {/* AI-Optimized Resume (Editable) */}
                     <div className="border rounded-lg p-4">
-                      <h3 className="text-lg font-medium text-primary mb-3">AI-Optimized</h3>
-                      
+                      <h3 className="text-lg font-medium text-primary mb-3">
+                        AI-Optimized
+                      </h3>
+
                       <div className="space-y-4">
                         {/* Summary Section */}
                         <div>
-                          <h4 className="font-medium text-gray-700 mb-1">Professional Summary</h4>
+                          <h4 className="font-medium text-gray-700 mb-1">
+                            Professional Summary
+                          </h4>
                           <textarea
                             className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30 focus:border-primary transition-colors"
                             rows="3"
@@ -1373,183 +1597,248 @@ const ResumeBuilder = () => {
                             onChange={(e) => {
                               setEditableAiResume({
                                 ...editableAiResume,
-                                summary: e.target.value
+                                summary: e.target.value,
                               });
                             }}
                           />
                         </div>
-                        
+
                         {/* Skills Section */}
                         <div>
-                          <h4 className="font-medium text-gray-700 mb-1">Skills</h4>
+                          <h4 className="font-medium text-gray-700 mb-1">
+                            Skills
+                          </h4>
                           <textarea
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
                             rows="3"
-                            value={typeof editableAiResume.skills === 'string' 
-                              ? editableAiResume.skills 
-                              : Array.isArray(editableAiResume.skills) 
-                                ? editableAiResume.skills.join(', ') 
-                                : ''}
+                            value={
+                              typeof editableAiResume.skills === "string"
+                                ? editableAiResume.skills
+                                : Array.isArray(editableAiResume.skills)
+                                ? editableAiResume.skills.join(", ")
+                                : ""
+                            }
                             onChange={(e) => {
                               // Store skills as a string in the editable state
                               // It will be processed into an array when the resume is updated
                               setEditableAiResume({
                                 ...editableAiResume,
-                                skills: e.target.value
+                                skills: e.target.value,
                               });
                             }}
                           />
                         </div>
-                        
+
                         {/* Work Experience Section */}
                         <div>
-                          <h4 className="font-medium text-gray-700 mb-1">Work Experience</h4>
-                          {editableAiResume.workExperience.map((exp, expIndex) => (
-                            <div key={expIndex} className="mb-3 p-3 bg-gray-50 rounded-md border border-gray-200">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
-                                <div>
-                                  <label className="block text-xs text-gray-600">Job Title</label>
-                                  <input
-                                    type="text"
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                    value={exp.jobTitle}
-                                    onChange={(e) => {
-                                      const newExp = [...editableAiResume.workExperience];
-                                      newExp[expIndex].jobTitle = e.target.value;
-                                      setEditableAiResume({
-                                        ...editableAiResume,
-                                        workExperience: newExp
-                                      });
-                                    }}
-                                  />
-                                </div>
-                                <div>
-                                  <label className="block text-xs text-gray-600">Company</label>
-                                  <input
-                                    type="text"
-                                    className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                    value={exp.company}
-                                    onChange={(e) => {
-                                      const newExp = [...editableAiResume.workExperience];
-                                      newExp[expIndex].company = e.target.value;
-                                      setEditableAiResume({
-                                        ...editableAiResume,
-                                        workExperience: newExp
-                                      });
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                              <div className="mb-2">
-                                <label className="block text-xs text-gray-600">Duration</label>
-                                <input
-                                  type="text"
-                                  className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                  value={exp.duration || `${exp.startDate} - ${exp.endDate}`}
-                                  onChange={(e) => {
-                                    const newExp = [...editableAiResume.workExperience];
-                                    newExp[expIndex].duration = e.target.value;
-                                    setEditableAiResume({
-                                      ...editableAiResume,
-                                      workExperience: newExp
-                                    });
-                                  }}
-                                />
-                              </div>
-                              
-                              <div>
-                                <label className="block text-xs text-gray-600">Responsibilities</label>
-                                {exp.responsibilities && Array.isArray(exp.responsibilities) ? (
-                                  <div className="space-y-1">
-                                    {exp.responsibilities.map((resp, respIndex) => (
-                                      <div key={respIndex} className="flex items-center gap-1">
-                                        <span className="text-xs text-gray-500 min-w-[15px]">{respIndex + 1}.</span>
-                                        <input
-                                          type="text"
-                                          className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                          value={resp}
-                                          onChange={(e) => {
-                                            const newExp = [...editableAiResume.workExperience];
-                                            newExp[expIndex].responsibilities[respIndex] = e.target.value;
-                                            setEditableAiResume({
-                                              ...editableAiResume,
-                                              workExperience: newExp
-                                            });
-                                          }}
-                                        />
-                                      </div>
-                                    ))}
+                          <h4 className="font-medium text-gray-700 mb-1">
+                            Work Experience
+                          </h4>
+                          {editableAiResume.workExperience.map(
+                            (exp, expIndex) => (
+                              <div
+                                key={expIndex}
+                                className="mb-3 p-3 bg-gray-50 rounded-md border border-gray-200"
+                              >
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-2">
+                                  <div>
+                                    <label className="block text-xs text-gray-600">
+                                      Job Title
+                                    </label>
+                                    <input
+                                      type="text"
+                                      className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                      value={exp.jobTitle}
+                                      onChange={(e) => {
+                                        const newExp = [
+                                          ...editableAiResume.workExperience,
+                                        ];
+                                        newExp[expIndex].jobTitle =
+                                          e.target.value;
+                                        setEditableAiResume({
+                                          ...editableAiResume,
+                                          workExperience: newExp,
+                                        });
+                                      }}
+                                    />
                                   </div>
-                                ) : (
-                                  <textarea
+                                  <div>
+                                    <label className="block text-xs text-gray-600">
+                                      Company
+                                    </label>
+                                    <input
+                                      type="text"
+                                      className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                      value={exp.company}
+                                      onChange={(e) => {
+                                        const newExp = [
+                                          ...editableAiResume.workExperience,
+                                        ];
+                                        newExp[expIndex].company =
+                                          e.target.value;
+                                        setEditableAiResume({
+                                          ...editableAiResume,
+                                          workExperience: newExp,
+                                        });
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="mb-2">
+                                  <label className="block text-xs text-gray-600">
+                                    Duration
+                                  </label>
+                                  <input
+                                    type="text"
                                     className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
-                                    rows="2"
-                                    value={exp.responsibilities || ""}
+                                    value={
+                                      exp.duration ||
+                                      `${exp.startDate} - ${exp.endDate}`
+                                    }
                                     onChange={(e) => {
-                                      const newExp = [...editableAiResume.workExperience];
-                                      newExp[expIndex].responsibilities = e.target.value;
+                                      const newExp = [
+                                        ...editableAiResume.workExperience,
+                                      ];
+                                      newExp[expIndex].duration =
+                                        e.target.value;
                                       setEditableAiResume({
                                         ...editableAiResume,
-                                        workExperience: newExp
+                                        workExperience: newExp,
                                       });
                                     }}
                                   />
-                                )}
+                                </div>
+
+                                <div>
+                                  <label className="block text-xs text-gray-600">
+                                    Responsibilities
+                                  </label>
+                                  {exp.responsibilities &&
+                                  Array.isArray(exp.responsibilities) ? (
+                                    <div className="space-y-1">
+                                      {exp.responsibilities.map(
+                                        (resp, respIndex) => (
+                                          <div
+                                            key={respIndex}
+                                            className="flex items-center gap-1"
+                                          >
+                                            <span className="text-xs text-gray-500 min-w-[15px]">
+                                              {respIndex + 1}.
+                                            </span>
+                                            <input
+                                              type="text"
+                                              className="w-full px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                              value={resp}
+                                              onChange={(e) => {
+                                                const newExp = [
+                                                  ...editableAiResume.workExperience,
+                                                ];
+                                                newExp[
+                                                  expIndex
+                                                ].responsibilities[respIndex] =
+                                                  e.target.value;
+                                                setEditableAiResume({
+                                                  ...editableAiResume,
+                                                  workExperience: newExp,
+                                                });
+                                              }}
+                                            />
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <textarea
+                                      className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
+                                      rows="2"
+                                      value={exp.responsibilities || ""}
+                                      onChange={(e) => {
+                                        const newExp = [
+                                          ...editableAiResume.workExperience,
+                                        ];
+                                        newExp[expIndex].responsibilities =
+                                          e.target.value;
+                                        setEditableAiResume({
+                                          ...editableAiResume,
+                                          workExperience: newExp,
+                                        });
+                                      }}
+                                    />
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          ))}
+                            )
+                          )}
                         </div>
-                        
+
                         {/* Education Section */}
                         <div>
-                          <h4 className="font-medium text-gray-700 mb-1">Education</h4>
+                          <h4 className="font-medium text-gray-700 mb-1">
+                            Education
+                          </h4>
                           {editableAiResume.education.map((edu, eduIndex) => (
-                            <div key={eduIndex} className="mb-3 p-3 bg-gray-50 rounded-md border border-gray-200">
+                            <div
+                              key={eduIndex}
+                              className="mb-3 p-3 bg-gray-50 rounded-md border border-gray-200"
+                            >
                               <div className="grid grid-cols-1 gap-2 mb-2">
                                 <div>
-                                  <label className="block text-xs text-gray-600">School</label>
+                                  <label className="block text-xs text-gray-600">
+                                    School
+                                  </label>
                                   <input
                                     type="text"
                                     className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
                                     value={edu.school}
                                     onChange={(e) => {
-                                      const newEdu = [...editableAiResume.education];
+                                      const newEdu = [
+                                        ...editableAiResume.education,
+                                      ];
                                       newEdu[eduIndex].school = e.target.value;
                                       setEditableAiResume({
                                         ...editableAiResume,
-                                        education: newEdu
+                                        education: newEdu,
                                       });
                                     }}
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-xs text-gray-600">Degree</label>
+                                  <label className="block text-xs text-gray-600">
+                                    Degree
+                                  </label>
                                   <input
                                     type="text"
                                     className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
                                     value={edu.degree}
                                     onChange={(e) => {
-                                      const newEdu = [...editableAiResume.education];
+                                      const newEdu = [
+                                        ...editableAiResume.education,
+                                      ];
                                       newEdu[eduIndex].degree = e.target.value;
                                       setEditableAiResume({
                                         ...editableAiResume,
-                                        education: newEdu
+                                        education: newEdu,
                                       });
                                     }}
                                   />
                                 </div>
                                 <div>
-                                  <label className="block text-xs text-gray-600">Graduation Year</label>
+                                  <label className="block text-xs text-gray-600">
+                                    Graduation Year
+                                  </label>
                                   <input
                                     type="text"
                                     className="w-full px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-primary/30"
                                     value={edu.graduationYear}
                                     onChange={(e) => {
-                                      const newEdu = [...editableAiResume.education];
-                                      newEdu[eduIndex].graduationYear = e.target.value;
+                                      const newEdu = [
+                                        ...editableAiResume.education,
+                                      ];
+                                      newEdu[eduIndex].graduationYear =
+                                        e.target.value;
                                       setEditableAiResume({
                                         ...editableAiResume,
-                                        education: newEdu
+                                        education: newEdu,
                                       });
                                     }}
                                   />
@@ -1561,7 +1850,7 @@ const ResumeBuilder = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200">
                     <button
                       className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors"
@@ -1588,38 +1877,17 @@ const ResumeBuilder = () => {
           </div>
         );
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
       case 8:
         return (
           <div className="max-w-3xl mx-auto">
-            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">Step 8: Preview & Export</h3>
+            <h3 className="text-xl font-medium text-primary mb-2 pb-2 border-b">
+              Step 8: Preview & Export
+            </h3>
             <p className="text-sm text-gray-600 mb-6">
-              Your resume is ready! Preview and download it or save it to your account.
+              Your resume is ready! Preview and download it or save it to your
+              account.
             </p>
-            
+
             <div className="bg-white rounded-md shadow-sm overflow-hidden mb-8">
               {pdfBlob ? (
                 // <iframe
@@ -1628,21 +1896,33 @@ const ResumeBuilder = () => {
                 //   className="w-full h-[600px] border-0"
                 //   title="Resume Preview"
                 // ></iframe>
-                <PDFPreview pdfBlob={pdfBlob}/>
+                <PDFPreview pdfBlob={pdfBlob} />
               ) : (
                 <div className="flex items-center justify-center h-[600px] bg-gray-50">
                   <p className="text-gray-500">Loading preview...</p>
                 </div>
               )}
             </div>
-            
+
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 className="px-5 py-2.5 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2"
-                onClick={downloadPDF}
+                onClick={() =>
+                  document.getElementById("my_modal_1").showModal()
+                }
+                // onClick={downloadPDF}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
                 </svg>
                 Download PDF
               </button>
@@ -1651,13 +1931,22 @@ const ResumeBuilder = () => {
                 onClick={savePDFToFirebase}
                 disabled={savingPDF || pdfSaved}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
                   <path d="M7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V6h5a2 2 0 012 2v7a2 2 0 01-2 2H4a2 2 0 01-2-2V8a2 2 0 012-2h5v5.586l-1.293-1.293zM9 4a1 1 0 012 0v2H9V4z" />
                 </svg>
-                {savingPDF ? "Saving..." : pdfSaved ? "Saved to Account" : "Save to Account"}
+                {savingPDF
+                  ? "Saving..."
+                  : pdfSaved
+                  ? "Saved to Account"
+                  : "Save to Account"}
               </button>
             </div>
-            
+
             {saveConfirmation && (
               <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-md text-green-600 text-center">
                 {saveConfirmation}
@@ -1670,28 +1959,6 @@ const ResumeBuilder = () => {
     }
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
   return (
     <div className="min-h-screen p-6 flex flex-col mt-3">
       <div className="card w-full">
@@ -1700,27 +1967,31 @@ const ResumeBuilder = () => {
         <div className="relative w-full h-3 rounded-full bg-gray-100 mb-8 overflow-hidden">
           <div className="absolute h-full top-0 left-0 flex">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div 
+              <div
                 key={index}
                 className={`h-full w-[4.5rem] md:w-24 ${
-                  index < step ? 'bg-primary' : 'bg-transparent'
-                } ${index < 7 && 'border-r border-white/30'} transition-all duration-500 ease-out`}
+                  index < step ? "bg-primary" : "bg-transparent"
+                } ${
+                  index < 7 && "border-r border-white/30"
+                } transition-all duration-500 ease-out`}
               />
             ))}
           </div>
-          <div 
+          <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-primary to-primary/80 transition-all duration-700 ease-out"
             style={{ width: `${(step / 8) * 100}%` }}
           />
           <div className="absolute top-0 left-0 w-full h-full flex justify-between px-1">
             {Array.from({ length: 8 }).map((_, index) => (
-              <div 
+              <div
                 key={index}
                 className={`relative h-3 flex items-center justify-center w-6 z-10 ${
-                  index < step ? 'text-white' : 'text-gray-400'
+                  index < step ? "text-white" : "text-gray-400"
                 }`}
               >
-                <span className="absolute text-[9px] font-semibold">{index + 1}</span>
+                <span className="absolute text-[9px] font-semibold">
+                  {index + 1}
+                </span>
               </div>
             ))}
           </div>
@@ -1734,9 +2005,25 @@ const ResumeBuilder = () => {
         {loading && (
           <div className="mb-4 p-4 bg-gradient-to-r from-primary/90 to-primary/70 text-white text-center rounded-md shadow-sm">
             <div className="flex items-center justify-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
               </svg>
               <span>Processing...</span>
             </div>
@@ -1745,29 +2032,62 @@ const ResumeBuilder = () => {
         {renderStep()}
         <div className="flex justify-between mt-8">
           {step > 1 && (
-            <button 
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2" 
+            <button
+              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors inline-flex items-center justify-center gap-2"
               onClick={prevStep}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
               Back
             </button>
           )}
           {step < 8 && (
-            <button 
-              className="ml-auto px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2" 
+            <button
+              className="ml-auto px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors inline-flex items-center justify-center gap-2"
               onClick={nextStep}
             >
               Next
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
             </button>
           )}
         </div>
       </div>
+      <dialog id="my_modal_1" className="modal ">
+        <div className="modal-box !bg-white w-[850px] max-w-[850px]">
+          {/* <h3 className="font-bold text-lg">Hello!</h3>
+           <p className="py-4">
+            Press ESC key or click the button below to close
+          </p> */} 
+          <Payment downloadPDF={downloadPDF} savePDFToFirebase={savePDFToFirebase}></Payment>
+          <div className="modal-action flex justify-center items-center">
+            <form method="dialog" className="">
+              {/* if there is a button in form, it will close the modal */}
+              <button className="btn border border-lime-400">Cancel</button>
+            </form>
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 };
