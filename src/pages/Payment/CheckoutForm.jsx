@@ -11,7 +11,12 @@ import { Loader2 } from "lucide-react";
 import Swal from "sweetalert2";
 import { Button } from "@/components/ui/button";
 
-const CheckoutForm = ({ clientSecret,downloadPDF,savePDFToFirebase }) => {
+const CheckoutForm = ({
+  modal_id,
+  clientSecret,
+  downloadPDF,
+  savePDFToFirebase,
+}) => {
   // console.log(clientSecret,"client Secret")
   const stripe = useStripe();
   const elements = useElements();
@@ -77,10 +82,11 @@ const CheckoutForm = ({ clientSecret,downloadPDF,savePDFToFirebase }) => {
       //     // console.log(err);
       //     toast.error(err)
       // }
-      document.getElementById("my_modal_1").close();
-      Swal.fire("Success")
-      savePDFToFirebase()
-      downloadPDF()
+      const modal = document.getElementById(modal_id);
+      if (modal) modal.close();
+      Swal.fire("Success");
+      savePDFToFirebase();
+      downloadPDF();
       window.location.reload();
     }
 
@@ -99,7 +105,7 @@ const CheckoutForm = ({ clientSecret,downloadPDF,savePDFToFirebase }) => {
           {isProcessing ? <Loader2 className="animate-spin" /> : "Pay now"}
         </span>
       </Button>
-      {message && <div id="payment-message">{message}</div>}
+      {/* {message && <div id="payment-message">{message}</div>} */}
     </form>
   );
 };

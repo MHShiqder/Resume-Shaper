@@ -15,7 +15,7 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 
 const stripePromise = loadStripe(`${import.meta.env.VITE_payment_gateway_key}`);
-const Payment = ({ downloadPDF,savePDFToFirebase }) => {
+const Payment = ({ downloadPDF,savePDFToFirebase, modal_id }) => {
     const {user}=useAuth()
     const [clientSecret, setClientSecret] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -92,7 +92,7 @@ const Payment = ({ downloadPDF,savePDFToFirebase }) => {
                   </div>
                 ) : clientSecret ? (
                   <Elements stripe={stripePromise} options={{ clientSecret, appearance: { theme: 'stripe' } }}>
-                    <CheckoutForm  clientSecret={clientSecret} downloadPDF={downloadPDF} savePDFToFirebase={savePDFToFirebase}/>
+                    <CheckoutForm modal_id={modal_id}  clientSecret={clientSecret} downloadPDF={downloadPDF} savePDFToFirebase={savePDFToFirebase}/>
                   </Elements>
                 ) : (
                   <Alert className="border-red-200 bg-red-50">
