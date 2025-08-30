@@ -136,10 +136,10 @@ export function AppSidebar({ onSectionChange, ...props }) {
             <PlusCircle className="h-5 w-5" />
             <span className="font-medium">New Project</span>
           </button>
-          <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-primary/5 text-primary rounded-lg hover:from-primary/20 hover:to-primary/10 transition-colors">
+          {/* <button className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-primary/10 to-primary/5 text-primary rounded-lg hover:from-primary/20 hover:to-primary/10 transition-colors">
             <Sparkles className="h-5 w-5" />
             <span className="font-medium">Upgrade to Pro</span>
-          </button>
+          </button> */}
         </div>
       </SidebarFooter>
       <SidebarRail className="bg-transparent" />

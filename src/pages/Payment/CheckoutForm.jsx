@@ -35,21 +35,27 @@ const CheckoutForm = ({
     }
 
     stripe.retrievePaymentIntent(clientSecret).then(({ paymentIntent }) => {
-      switch (paymentIntent.status) {
-        case "succeeded":
-          setMessage("Payment succeeded!");
-          break;
-        case "processing":
-          setMessage("Your payment is processing.");
-          break;
-        case "requires_payment_method":
-          setMessage("Your payment was not successful, please try again.");
-          break;
-        default:
-          setMessage("Something went wrong.");
-          break;
-      }
-    });
+  if (!paymentIntent) {
+    setMessage("Unable to retrieve payment intent.");
+    return;
+  }
+
+  switch (paymentIntent.status) {
+    case "succeeded":
+      setMessage("Payment succeeded!");
+      break;
+    case "processing":
+      setMessage("Your payment is processing.");
+      break;
+    case "requires_payment_method":
+      setMessage("Your payment was not successful, please try again.");
+      break;
+    default:
+      setMessage("Something went wrong.");
+      break;
+  }
+});
+
   }, [stripe, clientSecret]);
 
   const handleSubmit = async (e) => {
@@ -99,7 +105,7 @@ const CheckoutForm = ({
       <Button
         disabled={isProcessing || !stripe || !elements}
         id="submit"
-        className="w-full mt-4 bg-lime-600"
+        className="w-full mt-4 bg-blue-900"
       >
         <span id="button-text">
           {isProcessing ? <Loader2 className="animate-spin" /> : "Pay now"}

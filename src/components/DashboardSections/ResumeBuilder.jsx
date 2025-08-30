@@ -115,7 +115,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
           <div className="modal-action flex justify-center items-center">
             <form method="dialog" className="">
               {/* if there is a button in form, it will close the modal */}
-              <button className="btn border border-lime-400">Cancel</button>
+              <button className="btn border border-blue-900">Cancel</button>
             </form>
           </div>
         </div>

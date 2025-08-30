@@ -79,7 +79,7 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-gray-100/50" />
+            {/* <DropdownMenuSeparator className="bg-gray-100/50" />
             <DropdownMenuGroup>
               <DropdownMenuItem className="flex items-center gap-2 text-gray-700 hover:bg-gray-50/50 cursor-pointer">
                 <Sparkles className="size-4 text-primary" />
@@ -106,17 +106,17 @@ export function NavUser({
                 <span>Messages</span>
                 <span className="ml-auto text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">3</span>
               </DropdownMenuItem>
-            </DropdownMenuGroup>
+            </DropdownMenuGroup> */}
             <DropdownMenuSeparator className="bg-gray-100/50" />
             <DropdownMenuGroup>
               <DropdownMenuItem className="flex items-center gap-2 text-gray-700 hover:bg-gray-50/50 cursor-pointer">
                 <HelpCircle className="size-4 text-primary" />
                 <span>Help & Support</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-2 text-gray-700 hover:bg-gray-50/50 cursor-pointer">
+              {/* <DropdownMenuItem className="flex items-center gap-2 text-gray-700 hover:bg-gray-50/50 cursor-pointer">
                 <Settings2 className="size-4 text-primary" />
                 <span>Settings</span>
-              </DropdownMenuItem>
+              </DropdownMenuItem> */}
             </DropdownMenuGroup>
             <DropdownMenuSeparator className="bg-gray-100/50" />
             <DropdownMenuItem 

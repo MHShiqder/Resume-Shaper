@@ -25,7 +25,7 @@ const Payment = ({ downloadPDF,savePDFToFirebase, modal_id }) => {
     const createPayment = async () => {
       try {
         setLoading(true);
-        const response = await axios.post(`${import.meta.env.VITE_Stripe_Backend_Api}/create-payment-intent`, {price:100});
+        const response = await axios.post(`${import.meta.env.VITE_Stripe_Backend_Api}/create-payment-intent`, {price:8.99});
         setClientSecret(response.data.clientSecret);
         setPaymentStatus(null); // Reset status on new intent creation
       } catch (error) {
@@ -56,10 +56,10 @@ const Payment = ({ downloadPDF,savePDFToFirebase, modal_id }) => {
                         </Elements> */}
 
       <div className="space-y-6">
-        <Card className="border-lime-400">
+        <Card className="border-blue-800">
               <CardHeader>
                 <CardTitle className="flex items-center space-x-2">
-                  <Lock className="w-5 h-5 text-lime-600" />
+                  <Lock className="w-5 h-5 text-blue-900" />
                   <span>Secure Payment</span>
                 </CardTitle>
                 <CardDescription>
@@ -87,7 +87,7 @@ const Payment = ({ downloadPDF,savePDFToFirebase, modal_id }) => {
 
                 {loading ? (
                   <div className="flex justify-center items-center h-48">
-                    <Loader2 className="w-8 h-8 animate-spin text-lime-600" />
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-900" />
                     <span className="ml-2 text-gray-600">Loading payment...</span>
                   </div>
                 ) : clientSecret ? (
