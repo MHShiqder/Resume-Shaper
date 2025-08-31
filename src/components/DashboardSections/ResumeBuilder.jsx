@@ -2,11 +2,9 @@ import { useEffect, useState } from "react";
 import { auth, storage } from "@/Firebase/firebase.config";
 import { deleteObject, getDownloadURL, listAll, ref } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
-import Payment from "@/pages/Payment/Payment";
 
 const ResumeBuilder = ({ setActiveSection }) => {
   const navigate = useNavigate();
-  const [selected_pdf_link, set_selected_pdf_link] = useState(null);
 
   const handleCreateResume = () => {
     setActiveSection("Create New");
@@ -14,7 +12,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
   };
 
   const [savedResumes, setSavedResumes] = useState([]);
-  const [selectedResume, setSelectedResume] = useState(null); // for modal
+  const [selectedResume, setSelectedResume] = useState(null); // 👈 for modal
 
   useEffect(() => {
     const fetchResumes = async () => {
@@ -96,31 +94,6 @@ const ResumeBuilder = ({ setActiveSection }) => {
         </div>
       </div>
 
-      <dialog id="my_modal_2" className="modal ">
-        <div className="modal-box !bg-white w-[750px] max-w-[750px]">
-          {/* <h3 className="font-bold text-lg">Hello!</h3>
-           <p className="py-4">
-            Press ESC key or click the button below to close
-          </p> */}
-          <Payment
-            modal_id={"my_modal_2"}
-            downloadPDF={() => {
-              if (selected_pdf_link) {
-                  window.open(selected_pdf_link, "_blank")
-              }
-              set_selected_pdf_link(null);
-            }}
-            savePDFToFirebase={() => {}}
-          ></Payment>
-          <div className="modal-action flex justify-center items-center">
-            <form method="dialog" className="">
-              {/* if there is a button in form, it will close the modal */}
-              <button className="btn border border-blue-900">Cancel</button>
-            </form>
-          </div>
-        </div>
-      </dialog>
-
       <div className="border-t border-gray-300 mt-5">
         <p className="text-lg font-pextralight text-primary mt-5">My Resumes</p>
         {savedResumes.length > 0 ? (
@@ -137,11 +110,10 @@ const ResumeBuilder = ({ setActiveSection }) => {
                       Resume {index + 1}
                     </span>
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => {
-                          set_selected_pdf_link(item.url);
-                          document.getElementById("my_modal_2").showModal();
-                        }} // call your function here
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         className="text-blue-600 hover:text-blue-800 transition-colors p-1 rounded-full hover:bg-blue-100"
                         title="Download Resume"
                       >
@@ -159,7 +131,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
                             d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                           />
                         </svg>
-                      </button>
+                      </a>
                       <button
                         onClick={() => handleDelete(item.ref)}
                         className="text-red-600 cursor-pointer hover:text-red-800 transition-colors p-1 rounded-full hover:bg-red-100"
