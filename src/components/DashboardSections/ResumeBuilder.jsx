@@ -188,7 +188,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
                 <div className="w-full h-80 overflow-hidden bg-white">
                   <iframe
                     src={`${item.url}#toolbar=0&navpanes=0&scrollbar=0`}
-                    className="w-full h-full"
+                    className="w-full h-full pointer-events-none"
                     style={{
                       backgroundColor: "white",
                       border: "none",
@@ -255,7 +255,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
             <div className="flex-1 overflow-hidden">
               <iframe
                 src={`${selectedResume.url}#toolbar=0&navpanes=0&scrollbar=0`}
-                className="w-full h-full"
+                className="w-full h-full pointer-events-none"
                 style={{ border: "none", backgroundColor: "white" }}
                 title="Resume Full View"
               />
