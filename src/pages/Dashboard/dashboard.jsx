@@ -130,6 +130,9 @@ const Dashboard = () => {
     case "My Letters":
       mainContent = <CoverBuilderContent setActiveSection={handleSectionChange} />;
       break;
+    case "Create New Cover":
+      mainContent = <CreateCover></CreateCover>;
+      break;
     case "Recent":
       mainContent = <CoverBuilderContent setActiveSection={handleSectionChange} />;
       break;

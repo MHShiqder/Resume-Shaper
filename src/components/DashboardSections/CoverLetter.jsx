@@ -10,7 +10,7 @@ function CoverLetter({ setActiveSection }) {
   const [errorMessage, setErrorMessage] = useState("");
 
   const handleCreateCoverLetter = () => {
-    setActiveSection("Create New Letter"); // Update section
+    setActiveSection("Create New Cover"); // Update section
     navigate("/dashboard"); // Navigate to Dashboard
   };
   

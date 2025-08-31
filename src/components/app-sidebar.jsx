@@ -81,7 +81,7 @@ const data = {
           icon: FileCheck,
         },
         {
-          title: "Create New",
+          title: "Create New Cover",
           url: "#",
           icon: PlusCircle,
         },

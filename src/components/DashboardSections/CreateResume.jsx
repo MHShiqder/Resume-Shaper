@@ -627,7 +627,7 @@ const ResumeBuilder = () => {
                 />
               </div>
 
-              {/* commented by hasib to remove linked in */}
+
 
               {/* <ModernInput
                 label="LinkedIn URL"
