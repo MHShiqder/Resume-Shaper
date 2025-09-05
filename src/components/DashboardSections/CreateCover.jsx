@@ -12,6 +12,12 @@ function CreateCover() {
   const [requesterName, setRequesterName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [position, setPosition] = useState("");
+  const {user} = useAuth()
+  if (!user) {
+      console.error("User is not logged in");
+      return;
+    }
+    const uid = user.uid;
 
   // Cover letter body returned from Gemini (only the body)
   const [coverLetter, setCoverLetter] = useState("");
@@ -133,12 +139,8 @@ function CreateCover() {
 
     //FIREBASE SAVE
     const pdfBlob = doc.output("blob");
-    const {user} = useAuth()
-    if (!user) {
-      console.error("User is not logged in");
-      return;
-    }
-    const uid = user.uid;
+    
+    
 
     // Create a unique file name and path (e.g., coverLetters/{uid}/coverletter_TIMESTAMP.pdf)
     const fileName = `coverLetters/${uid}/coverletter_${Date.now()}.pdf`;
