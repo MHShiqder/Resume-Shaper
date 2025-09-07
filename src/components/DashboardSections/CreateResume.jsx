@@ -196,6 +196,11 @@ const ResumeBuilder = () => {
     }
   };
 
+
+  // ------------------------
+  // PDF Preview and Export
+  // ------------------------
+  
   const prevStep = () => {
     setErrorMessage("");
     setFieldErrors({});
@@ -527,9 +532,9 @@ const ResumeBuilder = () => {
   // PDF Preview and Export
   // ------------------------
   const generatePDFPreview = () => {
-    const doc = createPDFDocument();
-    const pdfBlob = doc.output("blob"); // gives a real Blob
-    setPdfBlob(pdfBlob); // keep Blob in state
+   const doc = createPDFDocument();
+    const blobUrl = doc.output("bloburl");
+    setPdfPreviewUrl(blobUrl);
   };
 
   // Download the PDF locally
@@ -1889,14 +1894,14 @@ const ResumeBuilder = () => {
             </p>
 
             <div className="bg-white rounded-md shadow-sm overflow-hidden mb-8">
-              {pdfBlob ? (
-                // <iframe
-                //   ref={pdfRef}
-                //   src={pdfPreviewUrl}
-                //   className="w-full h-[600px] border-0"
-                //   title="Resume Preview"
-                // ></iframe>
-                <PDFPreview pdfBlob={pdfBlob} />
+              {pdfPreviewUrl ? (
+                <iframe
+                  ref={pdfRef}
+                  src={`${pdfPreviewUrl}#toolbar=0&navpanes=0&scrollbar=0`}
+                  className="w-full h-[600px] border-0 pointer-events-none"
+                  title="Resume Preview"
+                ></iframe>
+                // <PDFPreview pdfBlob={pdfBlob} />
               ) : (
                 <div className="flex items-center justify-center h-[600px] bg-gray-50">
                   <p className="text-gray-500">Loading preview...</p>

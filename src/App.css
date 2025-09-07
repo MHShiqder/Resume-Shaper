@@ -158,3 +158,12 @@
 body {
     font-family: var(--font-pregular);
 }
+
+* {
+  scrollbar-width: none !important;       /* For Firefox */
+  -ms-overflow-style: none !important;    /* For Internet Explorer and Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important;               /* For Chrome, Safari, and Opera */
+}

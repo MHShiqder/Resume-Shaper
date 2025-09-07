@@ -106,7 +106,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
             modal_id={"my_modal_2"}
             downloadPDF={() => {
               if (selected_pdf_link) {
-                  window.open(selected_pdf_link, "_blank")
+                window.open(selected_pdf_link, "_blank");
               }
               set_selected_pdf_link(null);
             }}
@@ -124,7 +124,10 @@ const ResumeBuilder = ({ setActiveSection }) => {
       <div className="border-t border-gray-300 mt-5">
         <p className="text-lg font-pextralight text-primary mt-5">My Resumes</p>
         {savedResumes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4">
+          <div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-4"
+            id="resumes-id"
+          >
             {savedResumes.map((item, index) => (
               <div
                 key={index}
@@ -185,7 +188,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
                 </div>
 
                 {/* Small Preview */}
-                <div className="w-full h-80 overflow-hidden bg-white">
+                <div className="w-full h-[434px] bg-white">
                   <iframe
                     src={`${item.url}#toolbar=0&navpanes=0&scrollbar=0`}
                     className="w-full h-full pointer-events-none"
@@ -193,6 +196,7 @@ const ResumeBuilder = ({ setActiveSection }) => {
                       backgroundColor: "white",
                       border: "none",
                     }}
+                    scrolling="no"
                     title={`Resume Preview ${index + 1}`}
                   />
                 </div>
